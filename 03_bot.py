@@ -2,35 +2,58 @@ import pyautogui
 import time
 import pyperclip
 import re
+import os
 from openai import OpenAI
+from dotenv import load_dotenv
+
+# ─────────────────────────────────────────
+# CONFIG — edit these values
+# ─────────────────────────────────────────
+load_dotenv()  # reads API key from .env file
 
 client = OpenAI(
-    api_key="API-KEY",
+    api_key=os.getenv("GROQ_API_KEY"),   # ← key loaded from .env file
     base_url="https://api.groq.com/openai/v1",
 )
 
-def is_last_message_from_sender(chat_log, sender_name="Username"):
-    # Split by WhatsApp timestamp pattern like [14:32, 31/03/2026]
+SENDER_NAME = "SENDER NAME"   # ← change to your contact's exact WhatsApp name
+
+# Screen coordinates — run 01_get_cursor.py to find yours
+CHROME_ICON   = (1012, 1055)
+DRAG_START    = (693,  257)
+DRAG_END      = (1857, 914)
+TAB_CLICK     = (424,  207)
+MESSAGE_INPUT = (810,  979)
+
+# ─────────────────────────────────────────
+# SMARTER MESSAGE DETECTION — works for any year
+# ─────────────────────────────────────────
+def is_last_message_from_sender(chat_log, sender_name=SENDER_NAME):
     parts = re.split(r'\[\d{1,2}:\d{2},\s*\d{1,2}/\d{1,2}/\d{4}\]\s*', chat_log.strip())
     last_part = parts[-1] if parts else ""
-    print(f"  Last part: {last_part[:80]}")  # debug
     return sender_name in last_part
 
+# ─────────────────────────────────────────
+# MAIN
+# ─────────────────────────────────────────
+
 # Step 1: Click on the chrome icon
-pyautogui.click(1012, 1055)
+pyautogui.click(*CHROME_ICON)
 time.sleep(1)
+
+print(f"🤖 Bot started — watching for messages from '{SENDER_NAME}'")
 
 while True:
     time.sleep(5)
 
     # Step 2: Drag to select the chat text
-    pyautogui.moveTo(693, 257)
-    pyautogui.dragTo(1857, 914, duration=2.0, button='left')
+    pyautogui.moveTo(*DRAG_START)
+    pyautogui.dragTo(*DRAG_END, duration=2.0, button='left')
 
     # Step 3: Copy selected text
     pyautogui.hotkey('ctrl', 'c')
     time.sleep(2)
-    pyautogui.click(424, 207)
+    pyautogui.press('escape')
 
     # Step 4: Get text from clipboard
     chat_history = pyperclip.paste()
@@ -62,7 +85,7 @@ while True:
         pyperclip.copy(response)
 
         # Step 5: Click on the message input box
-        pyautogui.click(810, 979)
+        pyautogui.click(*MESSAGE_INPUT)
         time.sleep(1)
 
         # Step 6: Paste the response
