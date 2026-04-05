@@ -9,7 +9,7 @@ client = OpenAI(
     base_url="https://api.groq.com/openai/v1",
 )
 
-def is_last_message_from_sender(chat_log, sender_name="Dinu Tiet Yadav"):
+def is_last_message_from_sender(chat_log, sender_name="Username"):
     # Split by WhatsApp timestamp pattern like [14:32, 31/03/2026]
     parts = re.split(r'\[\d{1,2}:\d{2},\s*\d{1,2}/\d{1,2}/\d{4}\]\s*', chat_log.strip())
     last_part = parts[-1] if parts else ""
